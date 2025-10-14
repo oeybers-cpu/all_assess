@@ -1,0 +1,119 @@
+/* Typing indicator */
+.typing-indicator {
+  opacity: 0.7;
+}
+
+.typing-dots span {
+  animation: typing 1.4s infinite;
+  opacity: 0.3;
+}
+
+.typing-dots span:nth-child(2) { 
+  animation-delay: 0.2s; 
+}
+
+.typing-dots span:nth-child(3) { 
+  animation-delay: 0.4s; 
+}
+
+@keyframes typing {
+  0%, 60%, 100% { 
+    opacity: 0.3; 
+  }
+  30% { 
+    opacity: 1; 
+  }
+}
+
+/* Quick actions */
+.quick-actions {
+  margin: 1rem 0;
+  padding: 1rem;
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  border: 1px solid var(--border-color);
+}
+
+.quick-actions-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.quick-action-btn {
+  background: rgba(58, 134, 255, 0.1);
+  border: 1px solid rgba(58, 134, 255, 0.3);
+  color: var(--light);
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.quick-action-btn:hover {
+  background: rgba(58, 134, 255, 0.2);
+  transform: translateY(-1px);
+}
+
+/* Timestamp */
+.timestamp {
+  font-size: 0.7rem;
+  color: var(--text-gray);
+  margin-left: 10px;
+  font-weight: normal;
+}
+
+/* Copy button */
+.copy-btn {
+  transition: all 0.3s ease;
+}
+
+.copy-btn:hover {
+  opacity: 1 !important;
+  transform: scale(1.1);
+}
+
+/* Offline indicator */
+body[data-status="offline"]::before {
+  content: "Offline - Some features limited";
+  position: fixed;
+  top: 10px;
+  right: 10px;
+  background: #ff6b6b;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  z-index: 1000;
+}
+
+/* Character counter */
+#char-counter {
+  transition: color 0.3s ease;
+}
+
+/* Mobile responsiveness for new features */
+@media (max-width: 768px) {
+  .quick-actions-buttons {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .quick-action-btn {
+    width: 100%;
+    max-width: 300px;
+    text-align: center;
+  }
+  
+  .mobile-button-row {
+    display: flex;
+    gap: 0.5rem;
+  }
+  
+  .mobile-button-row button {
+    flex: 1;
+  }
+}
