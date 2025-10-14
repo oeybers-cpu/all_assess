@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Assignment 2 and 3 Assessor</title>
+    <title>Assignment Assessor</title>
     <style>
         :root {
             --primary: #0f0f23;
@@ -29,218 +29,145 @@
             background-color: var(--primary);
             color: var(--text);
             height: 100vh;
-            display: flex;
-            flex-direction: column;
+            overflow: hidden;
         }
         
         .header {
             background-color: var(--secondary);
             padding: 1rem 2rem;
             border-bottom: 1px solid var(--border);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            text-align: center;
         }
         
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .logo h1 {
+        .header h1 {
             font-size: 1.5rem;
             background: linear-gradient(to right, var(--accent), var(--accent-light));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
         
-        .logo-icon {
-            font-size: 1.8rem;
-        }
-        
-        .welcome-message {
-            font-size: 1rem;
-            color: var(--text-secondary);
-        }
-        
         .container {
             display: flex;
-            flex-direction: column;
-            flex: 1;
-            overflow: hidden;
+            height: calc(100vh - 80px);
         }
         
-        .tabs {
-            display: flex;
+        .sidebar {
+            width: 300px;
             background-color: var(--secondary);
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .tab {
-            padding: 1rem 2rem;
-            cursor: pointer;
-            border-bottom: 3px solid transparent;
-            transition: all 0.2s;
-        }
-        
-        .tab:hover {
-            background-color: rgba(138, 43, 226, 0.1);
-        }
-        
-        .tab.active {
-            border-bottom: 3px solid var(--accent);
-            color: var(--accent);
-            background-color: rgba(138, 43, 226, 0.05);
-        }
-        
-        .tab-content {
-            display: none;
-            flex: 1;
-            overflow-y: auto;
-            padding: 2rem;
-        }
-        
-        .tab-content.active {
-            display: block;
-        }
-        
-        .instructions-container {
-            background-color: var(--secondary);
-            border-radius: 12px;
+            border-right: 1px solid var(--border);
             padding: 1.5rem;
-            margin-bottom: 1.5rem;
-            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            overflow-y: auto;
         }
         
-        .instructions-title {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
+        .sidebar-title {
+            font-size: 1.1rem;
             color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+        
+        .rubric-button {
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
             display: flex;
             align-items: center;
             gap: 10px;
+            background-color: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
         }
         
-        .instructions-content {
-            line-height: 1.6;
-            max-height: 300px;
+        .rubric-button:hover {
+            background-color: rgba(138, 43, 226, 0.2);
+        }
+        
+        .rubric-content {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background-color: rgba(26, 26, 46, 0.7);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            max-height: 400px;
             overflow-y: auto;
-            padding-right: 10px;
         }
         
-        .instructions-content::-webkit-scrollbar {
-            width: 6px;
+        .rubric-content.active {
+            display: block;
         }
         
-        .instructions-content::-webkit-scrollbar-thumb {
-            background-color: var(--accent);
-            border-radius: 3px;
-        }
-        
-        .instructions-content h3 {
-            margin: 1rem 0 0.5rem 0;
+        .rubric-content h3 {
             color: var(--accent-light);
+            margin-bottom: 0.5rem;
         }
         
-        .instructions-content ul, .instructions-content ol {
+        .rubric-content ul {
             margin-left: 1.5rem;
             margin-bottom: 1rem;
         }
         
-        .instructions-content li {
+        .rubric-content li {
             margin-bottom: 0.5rem;
         }
         
-        .assessment-container {
-            background-color: var(--secondary);
-            border-radius: 12px;
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
             padding: 1.5rem;
-            margin-top: 1rem;
+            overflow: hidden;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            background-color: rgba(26, 26, 46, 0.5);
+        }
+        
+        .message {
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            border-radius: 12px;
+            max-width: 80%;
+        }
+        
+        .user-message {
+            background-color: var(--secondary);
+            margin-left: auto;
             border: 1px solid var(--border);
         }
         
-        .assessment-title {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .system-message {
+            background-color: rgba(138, 43, 226, 0.1);
+            border: 1px solid rgba(138, 43, 226, 0.3);
         }
         
-        .criteria {
-            margin-bottom: 1.5rem;
-        }
-        
-        .criteria-name {
-            font-weight: bold;
-            margin-bottom: 0.5rem;
-        }
-        
-        .criteria-slider {
-            width: 100%;
-            height: 8px;
-            -webkit-appearance: none;
-            background: var(--primary);
-            border-radius: 4px;
-            outline: none;
-            margin-bottom: 0.5rem;
-        }
-        
-        .criteria-slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            background: var(--accent);
-            cursor: pointer;
-        }
-        
-        .criteria-value {
+        .message-header {
             display: flex;
             justify-content: space-between;
+            margin-bottom: 0.5rem;
             font-size: 0.9rem;
             color: var(--text-secondary);
         }
         
-        .total-score {
+        .message-content {
+            line-height: 1.5;
+        }
+        
+        .input-area {
             display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-top: 1rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-        
-        .total-score-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: var(--accent);
-        }
-        
-        .modify-note {
-            font-size: 0.9rem;
-            color: var(--warning);
-            margin-top: 0.5rem;
-            font-style: italic;
-        }
-        
-        .upload-section {
-            background-color: var(--secondary);
-            border-radius: 12px;
-            padding: 1.5rem;
-            margin-top: 1.5rem;
-            border: 1px solid var(--border);
-        }
-        
-        .upload-title {
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            color: var(--accent);
-            display: flex;
-            align-items: center;
             gap: 10px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background-color: var(--secondary);
         }
         
         .file-input {
@@ -252,14 +179,44 @@
             background-color: var(--accent);
             border-radius: 8px;
             cursor: pointer;
-            display: inline-flex;
+            display: flex;
             align-items: center;
             gap: 8px;
             transition: background-color 0.2s;
-            margin-bottom: 1rem;
         }
         
         .file-label:hover {
+            background-color: var(--accent-light);
+        }
+        
+        .text-input {
+            flex: 1;
+            padding: 0.8rem 1rem;
+            border-radius: 8px;
+            background-color: var(--primary);
+            border: 1px solid var(--border);
+            color: var(--text);
+            outline: none;
+        }
+        
+        .text-input:focus {
+            border-color: var(--accent);
+        }
+        
+        .send-button {
+            padding: 0.8rem 1.5rem;
+            background-color: var(--accent);
+            border: none;
+            border-radius: 8px;
+            color: var(--text);
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .send-button:hover {
             background-color: var(--accent-light);
         }
         
@@ -300,308 +257,148 @@
         }
         
         @media (max-width: 768px) {
-            .header {
-                flex-direction: column;
-                gap: 10px;
-                text-align: center;
-            }
-            
-            .tabs {
+            .container {
                 flex-direction: column;
             }
             
-            .tab {
-                padding: 1rem;
-                text-align: center;
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border);
+                max-height: 200px;
+            }
+            
+            .message {
+                max-width: 95%;
             }
         }
     </style>
 </head>
 <body>
     <div class="header">
-        <div class="logo">
-            <span class="logo-icon">📊</span>
-            <h1>Assignment 2 and 3 Assessor</h1>
-        </div>
-        <div class="welcome-message">
-            Let us assess together
-        </div>
+        <h1>Let us assess together</h1>
     </div>
     
     <div class="container">
-        <div class="tabs">
-            <div class="tab active" data-tab="assignment2">Assignment 2</div>
-            <div class="tab" data-tab="assignment3">Assignment 3</div>
-        </div>
-        
-        <div class="tab-content active" id="assignment2-tab">
-            <div class="instructions-container">
-                <div class="instructions-title">
-                    <span>📋</span>
-                    <span>Assignment 2 Instructions: Critical Reading Reflection</span>
-                </div>
-                <div class="instructions-content">
-                    <p><strong>Due Date:</strong> 8-15 September 2025 | <strong>Weight:</strong> 30 marks</p>
-                    <p><strong>Word Count:</strong> 850 - 1000 words</p>
-                    <p><strong>Submission:</strong> Online via clickUP (Turnitin-enabled)</p>
-                    
-                    <h3>Overview and Purpose</h3>
-                    <p>This assignment is designed to develop your critical thinking, analytical reading, and academic writing skills. You are required to select one of the key themes identified from our class survey, choose two provided academic articles related to that theme, and write a critical reflection that analyses and synthesises the arguments presented in those texts.</p>
-                    <p>Your response should not be a simple summary but a critical engagement with the ideas, arguments, and evidence presented by the authors.</p>
-                    
-                    <h3>Themes and Topics</h3>
-                    <p>Choose ONE of the following themes for your reflection:</p>
-                    <ul>
-                        <li>Unemployment</li>
-                        <li>Corruption</li>
-                        <li>Entrepreneurship</li>
-                        <li>National Dialogue & Governance</li>
-                        <li>Education and Skills Mismatch</li>
-                        <li>Economic Policies & Issues</li>
-                        <li>Social Justice & Inequality</li>
-                    </ul>
-                    
-                    <h3>Writing Your Reflection</h3>
-                    <p>Your 850-1000 word reflection should analyse the articles by addressing:</p>
-                    <ul>
-                        <li><strong>Introduction:</strong> Briefly introduce the theme and state which two articles you have chosen. Provide a clear thesis statement.</li>
-                        <li><strong>Summary and Analysis:</strong> Succinctly summarise the core arguments of each article.</li>
-                        <li><strong>Synthesis and Critical Engagement:</strong> Compare and contrast the two articles. Critically evaluate their arguments and connect to the South African context.</li>
-                        <li><strong>Conclusion:</strong> Summarise your main analytical points.</li>
-                    </ul>
-                    
-                    <h3>Formatting and Referencing</h3>
-                    <ul>
-                        <li>File Format: .docx or .pdf</li>
-                        <li>Font: Arial or Times New Roman, size ≤12</li>
-                        <li>Spacing: 1.5</li>
-                        <li>Referencing: Harvard style</li>
-                    </ul>
-                </div>
+        <div class="sidebar">
+            <div class="sidebar-title">ASSIGNMENT RUBRICS</div>
+            
+            <div class="rubric-button" id="rubric2-btn">
+                <span>📝</span>
+                <span>Assignment 2 Rubric</span>
+            </div>
+            <div class="rubric-content" id="rubric2-content">
+                <h3>Critical Reading Reflection (30 marks)</h3>
+                <ul>
+                    <li><strong>Introduction and thesis statement (5 marks)</strong></li>
+                    <li><strong>Summary and analysis of articles (10 marks)</strong></li>
+                    <li><strong>Synthesis and critical engagement (10 marks)</strong></li>
+                    <li><strong>Conclusion (3 marks)</strong></li>
+                    <li><strong>Referencing and formatting (2 marks)</strong></li>
+                </ul>
+                
+                <h3>Requirements</h3>
+                <ul>
+                    <li>Word Count: 850-1000 words</li>
+                    <li>Select TWO articles from your chosen theme</li>
+                    <li>Harvard referencing style</li>
+                    <li>Font: Arial/Times New Roman, size ≤12</li>
+                    <li>Spacing: 1.5</li>
+                </ul>
             </div>
             
-            <div class="assessment-container">
-                <div class="assessment-title">
-                    <span>📊</span>
-                    <span>Assignment 2 Assessment Criteria</span>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Introduction and thesis statement (5 marks)</div>
-                    <input type="range" min="0" max="5" value="0" class="criteria-slider" id="a2-criteria1">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>5</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Summary and analysis of articles (10 marks)</div>
-                    <input type="range" min="0" max="10" value="0" class="criteria-slider" id="a2-criteria2">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>10</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Synthesis and critical engagement (10 marks)</div>
-                    <input type="range" min="0" max="10" value="0" class="criteria-slider" id="a2-criteria3">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>10</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Conclusion (3 marks)</div>
-                    <input type="range" min="0" max="3" value="0" class="criteria-slider" id="a2-criteria4">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>3</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Referencing and formatting (2 marks)</div>
-                    <input type="range" min="0" max="2" value="0" class="critriteria-slider" id="a2-criteria5">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>2</span>
-                    </div>
-                </div>
-                
-                <div class="total-score">
-                    <div>Total Score:</div>
-                    <div class="total-score-value" id="a2-total-score">0/30</div>
-                </div>
-                
-                <div class="modify-note">
-                    Note: You can modify these scores after the AI assessment if needed.
-                </div>
+            <div class="rubric-button" id="rubric3-btn">
+                <span>🎯</span>
+                <span>Assignment 3 Rubric</span>
             </div>
-            
-            <div class="upload-section">
-                <div class="upload-title">
-                    <span>📎</span>
-                    <span>Upload Assignment 2 Files</span>
-                </div>
-                <input type="file" id="a2-file-input" class="file-input" multiple accept=".pdf,.doc,.docx">
-                <label for="a2-file-input" class="file-label">
-                    <span>📎</span>
-                    <span>Attach Files</span>
-                </label>
+            <div class="rubric-content" id="rubric3-content">
+                <h3>Team Argumentation Presentation (30 marks)</h3>
+                <ul>
+                    <li><strong>Clarity and strength of argument (8 marks)</strong></li>
+                    <li><strong>Use of evidence from required texts (6 marks)</strong></li>
+                    <li><strong>Visual aid effectiveness (5 marks)</strong></li>
+                    <li><strong>Counterargument acknowledgement and rebuttal (5 marks)</strong></li>
+                    <li><strong>Team coordination and contribution (4 marks)</strong></li>
+                    <li><strong>Strong, concise conclusion (2 marks)</strong></li>
+                </ul>
                 
-                <div class="file-list" id="a2-file-list">
-                    <!-- Files will appear here when uploaded -->
-                </div>
+                <h3>Requirements</h3>
+                <ul>
+                    <li>8-10 minute presentation</li>
+                    <li>Use articles from Assignment 2 as evidence</li>
+                    <li>Include at least one visual (graph, chart, or diagram)</li>
+                    <li>Acknowledge and refute one credible counterargument</li>
+                    <li>Equal contribution from all team members</li>
+                </ul>
+                
+                <h3>Extra Credit</h3>
+                <p>Include x2 examples of meaningful translanguaging</p>
             </div>
         </div>
         
-        <div class="tab-content" id="assignment3-tab">
-            <div class="instructions-container">
-                <div class="instructions-title">
-                    <span>📋</span>
-                    <span>Assignment 3 Instructions: Team Argumentation Presentation</span>
+        <div class="chat-area">
+            <div class="chat-messages" id="chat-container">
+                <div class="message system-message">
+                    <div class="message-header">
+                        <span>Assessment Assistant</span>
+                        <span>Just Now</span>
+                    </div>
+                    <div class="message-content">
+                        Welcome to the Assignment Assessor. I'm here to help you evaluate Assignment 2 and 3 submissions. You can upload files and ask questions about the assessment criteria.
+                    </div>
                 </div>
-                <div class="instructions-content">
-                    <p><strong>Due:</strong> 31 October | <strong>Weight:</strong> 30 marks | <strong>Format:</strong> In-class or Digital Narrative Presentation</p>
-                    
-                    <h3>Instructions</h3>
-                    <p>Choose ONE theme from Assignment 2 (Unemployment, Corruption, Entrepreneurship, etc.). Form a team of 3–5 students.</p>
-                    <p>Develop a structured argumentative presentation taking a clear position on a debatable issue within your chosen theme.</p>
-                    
-                    <h3>Requirements</h3>
-                    <ol>
-                        <li>Use the articles from Assignment 2 as your primary evidence.</li>
-                        <li>Cite sources using Harvard style (in-slide or in-narrative).</li>
-                        <li>Include at least one visual (graph, chart, or diagram) to support your argument; this can be GenAI.</li>
-                        <li>Acknowledge and refute one credible counterargument.</li>
-                        <li>Ensure equal contribution from all team members.</li>
-                    </ol>
-                    
-                    <h3>Format</h3>
-                    <ul>
-                        <li>Max 8-10 minutes presentation</li>
-                        <li>Submit slides or digital narrative link via clickUP (Turnitin-enabled)</li>
-                        <li>Font: Arial/Times New Roman, size ≤12 | Spacing: 1.5 (for any supporting doc)</li>
-                    </ul>
-                    
-                    <h3>Extra credit</h3>
-                    <p>Include x2 examples of meaningful and effective translanguaging that supports both the written text and the graphic or image.</p>
+                
+                <div class="message system-message">
+                    <div class="message-header">
+                        <span>Assessment Assistant</span>
+                        <span>Just Now</span>
+                    </div>
+                    <div class="message-content">
+                        Check the rubrics in the sidebar for detailed assessment criteria. You can upload assignment files using the attachment button.
+                    </div>
                 </div>
             </div>
             
-            <div class="assessment-container">
-                <div class="assessment-title">
-                    <span>📊</span>
-                    <span>Assignment 3 Assessment Criteria</span>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Clarity and strength of argument (8 marks)</div>
-                    <input type="range" min="0" max="8" value="0" class="criteria-slider" id="a3-criteria1">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>8</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Use of evidence from required texts (6 marks)</div>
-                    <input type="range" min="0" max="6" value="0" class="criteria-slider" id="a3-criteria2">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>6</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Visual aid effectiveness (5 marks)</div>
-                    <input type="range" min="0" max="5" value="0" class="criteria-slider" id="a3-criteria3">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>5</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Acknowledgement and rebuttal of counterarguments (5 marks)</div>
-                    <input type="range" min="0" max="5" value="0" class="criteria-slider" id="a3-criteria4">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>5</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Team coordination and contribution (4 marks)</div>
-                    <input type="range" min="0" max="4" value="0" class="criteria-slider" id="a3-criteria5">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>4</span>
-                    </div>
-                </div>
-                
-                <div class="criteria">
-                    <div class="criteria-name">Strong, concise conclusion (2 marks)</div>
-                    <input type="range" min="0" max="2" value="0" class="criteria-slider" id="a3-criteria6">
-                    <div class="criteria-value">
-                        <span>0</span>
-                        <span>2</span>
-                    </div>
-                </div>
-                
-                <div class="total-score">
-                    <div>Total Score:</div>
-                    <div class="total-score-value" id="a3-total-score">0/30</div>
-                </div>
-                
-                <div class="modify-note">
-                    Note: You can modify these scores after the AI assessment if needed.
-                </div>
+            <div class="file-list" id="file-list">
+                <!-- Files will appear here when uploaded -->
             </div>
             
-            <div class="upload-section">
-                <div class="upload-title">
+            <div class="input-area">
+                <input type="file" id="file-input" class="file-input" multiple accept=".pdf,.doc,.docx,.ppt,.pptx">
+                <label for="file-input" class="file-label">
                     <span>📎</span>
-                    <span>Upload Assignment 3 Files</span>
-                </div>
-                <input type="file" id="a3-file-input" class="file-input" multiple accept=".pdf,.ppt,.pptx,.doc,.docx,.mp4,.mov">
-                <label for="a3-file-input" class="file-label">
-                    <span>📎</span>
-                    <span>Attach Files</span>
+                    <span>Attach</span>
                 </label>
                 
-                <div class="file-list" id="a3-file-list">
-                    <!-- Files will appear here when uploaded -->
-                </div>
+                <input type="text" class="text-input" id="message-input" placeholder="Type your assessment query or instruction...">
+                <button class="send-button" id="send-button">
+                    <span>📤</span>
+                    <span>Send</span>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Tab functionality
-        document.querySelectorAll('.tab').forEach(tab => {
-            tab.addEventListener('click', () => {
-                // Remove active class from all tabs and contents
-                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-                
-                // Add active class to clicked tab and corresponding content
-                tab.classList.add('active');
-                const tabId = tab.getAttribute('data-tab');
-                document.getElementById(`${tabId}-tab`).classList.add('active');
-            });
+        // Rubric toggle functionality
+        document.getElementById('rubric2-btn').addEventListener('click', function() {
+            const content = document.getElementById('rubric2-content');
+            content.classList.toggle('active');
         });
         
-        // File upload functionality for Assignment 2
-        const a2FileInput = document.getElementById('a2-file-input');
-        const a2FileList = document.getElementById('a2-file-list');
+        document.getElementById('rubric3-btn').addEventListener('click', function() {
+            const content = document.getElementById('rubric3-content');
+            content.classList.toggle('active');
+        });
         
-        a2FileInput.addEventListener('change', function() {
+        // File upload functionality
+        const fileInput = document.getElementById('file-input');
+        const fileList = document.getElementById('file-list');
+        const chatContainer = document.getElementById('chat-container');
+        
+        fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
-                a2FileList.innerHTML = '';
+                fileList.innerHTML = '';
                 
                 Array.from(this.files).forEach(file => {
                     const fileItem = document.createElement('div');
@@ -618,76 +415,121 @@
                         </div>
                     `;
                     
-                    a2FileList.appendChild(fileItem);
-                });
-                
-                // Clear file input
-                this.value = '';
-            }
-        });
-        
-        // File upload functionality for Assignment 3
-        const a3FileInput = document.getElementById('a3-file-input');
-        const a3FileList = document.getElementById('a3-file-list');
-        
-        a3FileInput.addEventListener('change', function() {
-            if (this.files.length > 0) {
-                a3FileList.innerHTML = '';
-                
-                Array.from(this.files).forEach(file => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
+                    fileList.appendChild(fileItem);
                     
-                    fileItem.innerHTML = `
-                        <div class="file-name">
-                            <span>📄</span>
-                            <span>${file.name}</span>
+                    // Add user message for uploaded file
+                    const userMessage = document.createElement('div');
+                    userMessage.className = 'message user-message';
+                    
+                    userMessage.innerHTML = `
+                        <div class="message-header">
+                            <span>You</span>
+                            <span>Just Now</span>
                         </div>
-                        <div class="file-actions">
-                            <button class="file-action">👁️</button>
-                            <button class="file-action">🗑️</button>
+                        <div class="message-content">
+                            Uploaded file: <strong>${file.name}</strong>
                         </div>
                     `;
                     
-                    a3FileList.appendChild(fileItem);
+                    chatContainer.appendChild(userMessage);
+                    
+                    // Simulate AI response after a delay
+                    setTimeout(() => {
+                        const systemMessage = document.createElement('div');
+                        systemMessage.className = 'message system-message';
+                        
+                        systemMessage.innerHTML = `
+                            <div class="message-header">
+                                <span>Assessment Assistant</span>
+                                <span>Just Now</span>
+                            </div>
+                            <div class="message-content">
+                                File <strong>${file.name}</strong> received. I'll analyze this against the assignment criteria.
+                            </div>
+                        `;
+                        
+                        chatContainer.appendChild(systemMessage);
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    }, 1000);
                 });
                 
                 // Clear file input
                 this.value = '';
+                
+                // Scroll to bottom of chat
+                chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         });
         
-        // Calculate total score for Assignment 2
-        const a2Sliders = document.querySelectorAll('#assignment2-tab .criteria-slider');
-        const a2TotalScore = document.getElementById('a2-total-score');
+        // Send button functionality
+        const sendButton = document.getElementById('send-button');
+        const messageInput = document.getElementById('message-input');
         
-        function updateA2TotalScore() {
-            let total = 0;
-            a2Sliders.forEach(slider => {
-                total += parseInt(slider.value);
-            });
-            a2TotalScore.textContent = `${total}/30`;
-        }
+        sendButton.addEventListener('click', sendMessage);
         
-        a2Sliders.forEach(slider => {
-            slider.addEventListener('input', updateA2TotalScore);
+        // Allow sending with Enter key
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
         });
         
-        // Calculate total score for Assignment 3
-        const a3Sliders = document.querySelectorAll('#assignment3-tab .criteria-slider');
-        const a3TotalScore = document.getElementById('a3-total-score');
-        
-        function updateA3TotalScore() {
-            let total = 0;
-            a3Sliders.forEach(slider => {
-                total += parseInt(slider.value);
-            });
-            a3TotalScore.textContent = `${total}/30`;
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (message) {
+                // Add user message
+                const userMessage = document.createElement('div');
+                userMessage.className = 'message user-message';
+                
+                userMessage.innerHTML = `
+                    <div class="message-header">
+                        <span>You</span>
+                        <span>Just Now</span>
+                    </div>
+                    <div class="message-content">
+                        ${message}
+                    </div>
+                `;
+                
+                chatContainer.appendChild(userMessage);
+                
+                // Clear input
+                messageInput.value = '';
+                
+                // Simulate AI response after a delay
+                setTimeout(() => {
+                    const systemMessage = document.createElement('div');
+                    systemMessage.className = 'message system-message';
+                    
+                    // Simple response logic based on keywords
+                    let response = "I've processed your request. Is there anything specific about the assignment criteria you'd like me to clarify?";
+                    
+                    if (message.toLowerCase().includes('rubric') || message.toLowerCase().includes('criteria')) {
+                        response = "I can help explain the assessment criteria. Check the rubrics in the sidebar for details on how assignments are evaluated.";
+                    } else if (message.toLowerCase().includes('mark') || message.toLowerCase().includes('score')) {
+                        response = "I can provide guidance on scoring. Remember you can always adjust marks based on your professional judgment.";
+                    } else if (message.toLowerCase().includes('upload') || message.toLowerCase().includes('file')) {
+                        response = "You can upload assignment files using the attachment button. I'll analyze them against the assessment criteria.";
+                    }
+                    
+                    systemMessage.innerHTML = `
+                        <div class="message-header">
+                            <span>Assessment Assistant</span>
+                            <span>Just Now</span>
+                        </div>
+                        <div class="message-content">
+                            ${response}
+                        </div>
+                    `;
+                    
+                    chatContainer.appendChild(systemMessage);
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }, 1000);
+                
+                // Scroll to bottom of chat
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
         }
-        
-        a3Sliders.forEach(slider => {
-            slider.addEventListener('input', updateA3TotalScore);
-        });
     </script>
 </body>
 </html>
