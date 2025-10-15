@@ -1,1 +1,10 @@
-input: { message: "Please provide the assignment text you would like to have assessed". }
+// Extracted text from PDF
+const assignmentText = "This is the full assignment content...";
+
+// Send to your API
+await fetch('/api/chat', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ message: assignmentText }),
+});
+
