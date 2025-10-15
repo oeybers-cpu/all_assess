@@ -2,12 +2,12 @@
 export const config = { runtime: "edge" };
 
 // Configuration and Constants
-const ALLOWED_MODELS = new Set(["gpt-4.1-mini", "gpt-4.1", "gpt-4o-mini"]);
+const ALLOWED_MODELS = new Set(["gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]); // Corrected model names
 const MAX_MESSAGE_LENGTH = 500;
-const REQUEST_TIMEOUT = 30_000;
+const REQUEST_TIMEOUT = 60_000; // Increased timeout for streaming
 
 // Utility Functions
-function createResponse(obj, status = 200, extraHeaders = {}) {
+function createJsonResponse(obj, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(obj), {
     status,
     headers: {
@@ -20,23 +20,24 @@ function createResponse(obj, status = 200, extraHeaders = {}) {
 
 function validateRequest(payload) {
   const { messages, model: requestedModel } = payload || {};
-  
-  if (!Array.isArray(messages)) {
-    return { error: "messages must be an array", status: 400 };
+
+  if (!Array.isArray(messages) || messages.length === 0) {
+    return { error: "messages must be a non-empty array", status: 400 };
   }
-  
+
   // Validate message content length
   for (const message of messages) {
     if (message.content && message.content.length > MAX_MESSAGE_LENGTH) {
-      return { 
-        error: `Message content exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters`, 
-        status: 400 
+      return {
+        error: `Message content exceeds maximum length of ${MAX_MESSAGE_LENGTH} characters`,
+        status: 400
       };
     }
   }
-  
-  const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : "gpt-4.1-mini";
-  
+
+  // Use requested model if allowed, otherwise default to a safe model
+  const model = ALLOWED_MODELS.has(requestedModel) ? requestedModel : "gpt-3.5-turbo";
+
   return { messages, model, error: null };
 }
 
@@ -47,33 +48,15 @@ function createOpenAIRequest(apiKey, model, messages, signal) {
       authorization: `Bearer ${apiKey}`,
       "content-type": "application/json",
     },
-    body: JSON.stringify({ 
-      model, 
+    body: JSON.stringify({
+      model,
       messages,
-      // Add optional parameters for better response formatting
+      stream: true, // <-- CRITICAL: Enables token streaming
       temperature: 0.7,
       max_tokens: 1000
     }),
     signal,
   });
-}
-
-async function handleOpenAIResponse(upstream) {
-  const text = await upstream.text();
-  let data;
-  
-  try {
-    data = text ? JSON.parse(text) : null;
-  } catch {
-    data = null;
-  }
-
-  if (!upstream.ok) {
-    const detail = data?.error?.message || text || `Upstream HTTP ${upstream.status}`;
-    return { error: `OpenAI error: ${detail}`, status: 502, data: null };
-  }
-
-  return { error: null, data, status: 200 };
 }
 
 // CORS Handler
@@ -91,9 +74,9 @@ function handleCORS() {
 
 // Health Check Handler
 function handleHealthCheck() {
-  return createResponse({ 
-    ok: true, 
-    message: "chat endpoint is live. use POST.",
+  return createJsonResponse({
+    ok: true,
+    message: "chat endpoint is live and supports streaming. use POST.",
     timestamp: new Date().toISOString(),
     features: {
       allowed_models: Array.from(ALLOWED_MODELS),
@@ -103,29 +86,21 @@ function handleHealthCheck() {
   });
 }
 
-// Error Handler
+// Error Handler (for internal handler errors or non-streaming upstream errors)
 function handleError(error, status = 500) {
   const errorMessage = error?.message || "Unknown server error";
   console.error(`API Error (${status}):`, errorMessage);
-  
-  return createResponse({ 
+
+  return createJsonResponse({
     error: errorMessage,
     timestamp: new Date().toISOString()
   }, status);
 }
 
-// Session Management (Simple request tracking)
-let requestCount = 0;
-
-function trackRequest() {
-  requestCount++;
-  console.log(`API: Request #${requestCount} processed`);
-}
-
 // Main Request Handler
 export default async function handler(req) {
   const method = req.method || "GET";
-  
+
   try {
     // CORS preflight
     if (method === "OPTIONS") {
@@ -139,7 +114,7 @@ export default async function handler(req) {
 
     // Only allow POST for chat requests
     if (method !== "POST") {
-      return createResponse({ error: "Method not allowed" }, 405);
+      return createJsonResponse({ error: "Method not allowed" }, 405);
     }
 
     // API Key validation
@@ -165,28 +140,42 @@ export default async function handler(req) {
     const { messages, model } = validation;
 
     // Create abort controller for timeout
-    const controller = AbortSignal.timeout ? AbortSignal.timeout(REQUEST_TIMEOUT) : undefined;
+    const controller = AbortSignal.timeout(REQUEST_TIMEOUT);
 
     // Make OpenAI request
     const upstream = await createOpenAIRequest(apiKey, model, messages, controller);
-    
-    // Process response
-    const response = await handleOpenAIResponse(upstream);
-    if (response.error) {
-      return handleError(new Error(response.error), response.status);
+
+    // --- NON-STREAMING UPSTREAM ERROR CHECK ---
+    if (!upstream.ok || !upstream.body) {
+      let text = "";
+      try {
+        text = await upstream.text();
+      } catch (e) {
+        // Ignored. Can happen if stream is closed quickly.
+      }
+
+      let data;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        data = null; // Can't parse the error text
+      }
+
+      const detail = data?.error?.message || text || `Upstream HTTP ${upstream.status}`;
+      // Return a 502 error with the detail from the OpenAI response
+      return handleError(new Error(`OpenAI error: ${detail}`), 502);
     }
 
-    // Track successful request
-    trackRequest();
-
-    // Return successful response
-    return createResponse({
-      ...response.data,
-      // Add metadata similar to frontend structure
-      _metadata: {
-        model_used: model,
-        timestamp: new Date().toISOString(),
-        message_count: messages.length
+    // --- SUCCESSFUL STREAMING RESPONSE ---
+    // Pipe the raw ReadableStream from OpenAI directly to the client.
+    return new Response(upstream.body, {
+      status: 200,
+      headers: {
+        // Must be text/event-stream for Server-Sent Events (SSE)
+        'Content-Type': 'text/event-stream',
+        'Cache-Control': 'no-cache, no-transform',
+        'Connection': 'keep-alive',
+        'Access-Control-Allow-Origin': '*',
       }
     });
 
@@ -195,7 +184,7 @@ export default async function handler(req) {
     if (error.name === 'TimeoutError' || error.name === 'AbortError') {
       return handleError(new Error("Request timeout"), 408);
     }
-    
+
     return handleError(error);
   }
 }
