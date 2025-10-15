@@ -16,13 +16,14 @@
             --success: #00cc66;
             --warning: #ffcc00;
             --danger: #ff3333;
+            --loading: #8a2be2;
         }
         
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Inter', sans-serif;
         }
         
         body {
@@ -30,6 +31,8 @@
             color: var(--text);
             height: 100vh;
             overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         
         .header {
@@ -48,7 +51,8 @@
         
         .container {
             display: flex;
-            height: calc(100vh - 80px);
+            flex: 1;
+            overflow: hidden;
         }
         
         .sidebar {
@@ -60,6 +64,7 @@
             flex-direction: column;
             gap: 1rem;
             overflow-y: auto;
+            flex-shrink: 0;
         }
         
         .sidebar-title {
@@ -79,8 +84,14 @@
             background-color: rgba(138, 43, 226, 0.1);
             border: 1px solid rgba(138, 43, 226, 0.3);
         }
+
+        .rubric-button.selected {
+            border: 2px solid var(--accent);
+            background-color: rgba(138, 43, 226, 0.3);
+            font-weight: bold;
+        }
         
-        .rubric-button:hover {
+        .rubric-button:hover:not(.selected) {
             background-color: rgba(138, 43, 226, 0.2);
         }
         
@@ -107,10 +118,12 @@
         .rubric-content ul {
             margin-left: 1.5rem;
             margin-bottom: 1rem;
+            list-style-type: disc;
         }
         
         .rubric-content li {
             margin-bottom: 0.5rem;
+            list-style-type: disc;
         }
         
         .chat-area {
@@ -129,13 +142,15 @@
             border-radius: 12px;
             margin-bottom: 1rem;
             background-color: rgba(26, 26, 46, 0.5);
+            scroll-behavior: smooth;
         }
         
         .message {
             margin-bottom: 1.5rem;
             padding: 1rem;
             border-radius: 12px;
-            max-width: 80%;
+            max-width: 90%;
+            word-wrap: break-word;
         }
         
         .user-message {
@@ -147,11 +162,20 @@
         .system-message {
             background-color: rgba(138, 43, 226, 0.1);
             border: 1px solid rgba(138, 43, 226, 0.3);
+            margin-right: auto;
+        }
+
+        .error-message {
+            background-color: rgba(255, 51, 51, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            margin-right: auto;
         }
         
         .marking-message {
             background-color: rgba(0, 204, 102, 0.1);
             border: 1px solid rgba(0, 204, 102, 0.3);
+            margin-right: auto;
         }
         
         .message-header {
@@ -164,8 +188,26 @@
         
         .message-content {
             line-height: 1.5;
+            white-space: pre-wrap; /* Preserve formatting for streamed text */
         }
         
+        /* Loading animation for streaming */
+        .loading-dots:after {
+            overflow: hidden;
+            display: inline-block;
+            vertical-align: bottom;
+            -webkit-animation: ellipsis steps(3,end) 1s infinite;
+            animation: ellipsis steps(3,end) 1s infinite;
+            content: "\2026"; /* ascii ellipsis */
+            width: 0px; /* hide when not animating */
+        }
+        
+        @keyframes ellipsis {
+            to {
+                width: 1.25em;
+            }
+        }
+
         .marking-results {
             margin-top: 1rem;
             padding: 1rem;
@@ -192,7 +234,7 @@
         
         .criteria-score {
             font-weight: bold;
-            color: var(--accent-light);
+            color: var(--success);
         }
         
         .total-score {
@@ -211,13 +253,14 @@
             border: 1px solid var(--border);
             border-radius: 12px;
             background-color: var(--secondary);
+            flex-shrink: 0;
         }
         
         .file-input {
             display: none;
         }
         
-        .file-label {
+        .file-label, .mark-button {
             padding: 0.8rem 1.2rem;
             background-color: var(--accent);
             border-radius: 8px;
@@ -226,14 +269,23 @@
             align-items: center;
             gap: 8px;
             transition: background-color 0.2s;
+            border: none;
+            color: var(--text);
+            font-weight: 500;
         }
         
-        .file-label:hover {
+        .file-label:hover, .mark-button:hover:not(:disabled) {
             background-color: var(--accent-light);
+        }
+
+        .mark-button:disabled {
+            background-color: #5a2c88;
+            cursor: not-allowed;
+            opacity: 0.7;
         }
         
         .file-list {
-            margin-top: 1rem;
+            margin-bottom: 1rem;
         }
         
         .file-item {
@@ -244,12 +296,15 @@
             background-color: rgba(138, 43, 226, 0.1);
             border-radius: 8px;
             margin-bottom: 0.5rem;
+            border: 1px solid rgba(138, 43, 226, 0.3);
         }
         
         .file-name {
             display: flex;
             align-items: center;
             gap: 8px;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
         
         .file-actions {
@@ -262,6 +317,7 @@
             border: none;
             color: var(--accent);
             cursor: pointer;
+            font-size: 1.1rem;
         }
         
         .file-action:hover {
@@ -293,20 +349,20 @@
     
     <div class="container">
         <div class="sidebar">
-            <div class="sidebar-title">ASSIGNMENT RUBRICS</div>
+            <div class="sidebar-title">ASSIGNMENT RUBRICS (Select one)</div>
             
-            <div class="rubric-button" id="rubric2-btn">
+            <div class="rubric-button" data-rubric-id="rubric2" id="rubric2-btn">
                 <span>📝</span>
                 <span>Assignment 2 Rubric</span>
             </div>
             <div class="rubric-content" id="rubric2-content">
                 <h3>Critical Reading Reflection (30 marks)</h3>
-                <ul>
-                    <li><strong>Introduction and thesis statement (5 marks)</strong></li>
-                    <li><strong>Summary and analysis of articles (10 marks)</strong></li>
-                    <li><strong>Synthesis and critical engagement (10 marks)</strong></li>
-                    <li><strong>Conclusion (3 marks)</strong></li>
-                    <li><strong>Referencing and formatting (2 marks)</strong></li>
+                <ul data-max-score="30">
+                    <li data-criteria-name="Introduction and thesis statement" data-max-marks="5">Introduction and thesis statement (5 marks)</li>
+                    <li data-criteria-name="Summary and analysis of articles" data-max-marks="10">Summary and analysis of articles (10 marks)</li>
+                    <li data-criteria-name="Synthesis and critical engagement" data-max-marks="10">Synthesis and critical engagement (10 marks)</li>
+                    <li data-criteria-name="Conclusion" data-max-marks="3">Conclusion (3 marks)</li>
+                    <li data-criteria-name="Referencing and formatting" data-max-marks="2">Referencing and formatting (2 marks)</li>
                 </ul>
                 
                 <h3>Requirements</h3>
@@ -319,19 +375,19 @@
                 </ul>
             </div>
             
-            <div class="rubric-button" id="rubric3-btn">
+            <div class="rubric-button" data-rubric-id="rubric3" id="rubric3-btn">
                 <span>🎯</span>
                 <span>Assignment 3 Rubric</span>
             </div>
             <div class="rubric-content" id="rubric3-content">
                 <h3>Team Argumentation Presentation (30 marks)</h3>
-                <ul>
-                    <li><strong>Clarity and strength of argument (8 marks)</strong></li>
-                    <li><strong>Use of evidence from required texts (6 marks)</strong></li>
-                    <li><strong>Visual aid effectiveness (5 marks)</strong></li>
-                    <li><strong>Counterargument acknowledgement and rebuttal (5 marks)</strong></li>
-                    <li><strong>Team coordination and contribution (4 marks)</strong></li>
-                    <li><strong>Strong, concise conclusion (2 marks)</strong></li>
+                <ul data-max-score="30">
+                    <li data-criteria-name="Clarity and strength of argument" data-max-marks="8">Clarity and strength of argument (8 marks)</li>
+                    <li data-criteria-name="Use of evidence from required texts" data-max-marks="6">Use of evidence from required texts (6 marks)</li>
+                    <li data-criteria-name="Visual aid effectiveness" data-max-marks="5">Visual aid effectiveness (5 marks)</li>
+                    <li data-criteria-name="Counterargument acknowledgement and rebuttal" data-max-marks="5">Counterargument acknowledgement and rebuttal (5 marks)</li>
+                    <li data-criteria-name="Team coordination and contribution" data-max-marks="4">Team coordination and contribution (4 marks)</li>
+                    <li data-criteria-name="Strong, concise conclusion" data-max-marks="2">Strong, concise conclusion (2 marks)</li>
                 </ul>
                 
                 <h3>Requirements</h3>
@@ -356,7 +412,7 @@
                         <span>Just Now</span>
                     </div>
                     <div class="message-content">
-                        Welcome to the Assignment Marker. I will assess uploaded assignments against the provided rubrics. Please upload a file to begin marking.
+                        Welcome to the Assignment Marker. I will assess uploaded assignments against the provided rubrics. Please **upload a file** and **select a rubric** on the left to enable marking.
                     </div>
                 </div>
             </div>
@@ -371,119 +427,279 @@
                     <span>📎</span>
                     <span>Upload Assignment</span>
                 </label>
+                <button class="mark-button" id="mark-btn" disabled>
+                    <span>🚀</span>
+                    <span>Start Marking</span>
+                </button>
             </div>
         </div>
     </div>
 
     <script>
-        // Rubric toggle functionality
-        document.getElementById('rubric2-btn').addEventListener('click', function() {
-            const content = document.getElementById('rubric2-content');
-            content.classList.toggle('active');
-        });
-        
-        document.getElementById('rubric3-btn').addEventListener('click', function() {
-            const content = document.getElementById('rubric3-content');
-            content.classList.toggle('active');
-        });
-        
-        // File upload functionality
+        // --- Globals and DOM Elements ---
+        const API_URL = '/api/chat'; // Your Vercel Edge Function endpoint
+        const chatContainer = document.getElementById('chat-container');
         const fileInput = document.getElementById('file-input');
         const fileList = document.getElementById('file-list');
-        const chatContainer = document.getElementById('chat-container');
-        
+        const markButton = document.getElementById('mark-btn');
+        const rubricButtons = document.querySelectorAll('.rubric-button');
+        const rubrics = {
+            rubric2: document.getElementById('rubric2-content'),
+            rubric3: document.getElementById('rubric3-content')
+        };
+
+        let currentFile = null;
+        let selectedRubricId = null;
+        let isMarking = false;
+
+        // --- Utility Functions ---
+
+        function updateMarkButtonState() {
+            markButton.disabled = !currentFile || !selectedRubricId || isMarking;
+            markButton.textContent = isMarking ? 'Marking...' : 'Start Marking';
+        }
+
+        function createMessageElement(type, sender = 'Assignment Marker') {
+            const now = new Date().toLocaleTimeString();
+            const message = document.createElement('div');
+            message.className = `message ${type}-message`;
+            message.innerHTML = `
+                <div class="message-header">
+                    <span>${sender}</span>
+                    <span>${now}</span>
+                </div>
+                <div class="message-content"></div>
+            `;
+            chatContainer.appendChild(message);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            return message.querySelector('.message-content');
+        }
+
+        function createReportCardHTML(rubricDetails) {
+            let totalScore = 0;
+            let totalMax = 0;
+            let criteriaHtml = '';
+
+            rubricDetails.criteria.forEach(item => {
+                // Mocking score assignment (replace with LLM structured output later)
+                const mockScore = Math.min(item.maxMarks, Math.ceil(Math.random() * item.maxMarks * 0.9));
+                totalScore += mockScore;
+                totalMax += item.maxMarks;
+
+                criteriaHtml += `
+                    <div class="criteria-item">
+                        <div class="criteria-name">${item.name}</div>
+                        <div class="criteria-score">${mockScore}/${item.maxMarks}</div>
+                    </div>
+                `;
+            });
+
+            return `
+                <div class="marking-results">
+                    <div class="marking-criteria">
+                        ${criteriaHtml}
+                    </div>
+                    <div class="total-score">
+                        <div>Total Score:</div>
+                        <div class="criteria-score">${totalScore}/${totalMax}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- Rubric & File Handling ---
+
+        rubricButtons.forEach(button => {
+            const content = rubrics[button.dataset.rubricId];
+            const rubricId = button.dataset.rubricId;
+
+            button.addEventListener('click', function() {
+                // Toggle display
+                Object.values(rubrics).forEach(r => r.classList.remove('active'));
+                content.classList.toggle('active');
+
+                // Toggle selected state
+                rubricButtons.forEach(b => b.classList.remove('selected'));
+                if (content.classList.contains('active')) {
+                    this.classList.add('selected');
+                    selectedRubricId = rubricId;
+                } else {
+                    selectedRubricId = null;
+                }
+                updateMarkButtonState();
+            });
+        });
+
         fileInput.addEventListener('change', function() {
             if (this.files.length > 0) {
                 fileList.innerHTML = '';
+                const file = this.files[0];
+                currentFile = file;
+
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <div class="file-name">
+                        <span>📄</span>
+                        <span>${file.name}</span>
+                    </div>
+                    <div class="file-actions">
+                        <button class="file-action" title="View">👁️</button>
+                        <button class="file-action" title="Remove">🗑️</button>
+                    </div>
+                `;
+                fileList.appendChild(fileItem);
                 
-                Array.from(this.files).forEach(file => {
-                    const fileItem = document.createElement('div');
-                    fileItem.className = 'file-item';
-                    
-                    fileItem.innerHTML = `
-                        <div class="file-name">
-                            <span>📄</span>
-                            <span>${file.name}</span>
-                        </div>
-                        <div class="file-actions">
-                            <button class="file-action">👁️</button>
-                            <button class="file-action">🗑️</button>
-                        </div>
-                    `;
-                    
-                    fileList.appendChild(fileItem);
-                    
-                    // Add user message for uploaded file
-                    const userMessage = document.createElement('div');
-                    userMessage.className = 'message user-message';
-                    
-                    userMessage.innerHTML = `
-                        <div class="message-header">
-                            <span>You</span>
-                            <span>Just Now</span>
-                        </div>
-                        <div class="message-content">
-                            Uploaded assignment: <strong>${file.name}</strong>
-                        </div>
-                    `;
-                    
-                    chatContainer.appendChild(userMessage);
-                    
-                    // Simulate AI marking after a delay
-                    setTimeout(() => {
-                        const markingMessage = document.createElement('div');
-                        markingMessage.className = 'message marking-message';
-                        
-                        markingMessage.innerHTML = `
-                            <div class="message-header">
-                                <span>Assignment Marker</span>
-                                <span>Just Now</span>
-                            </div>
-                            <div class="message-content">
-                                <p>Assignment <strong>${file.name}</strong> received. Analyzing against the assignment criteria...</p>
-                                <div class="marking-results">
-                                    <div class="marking-criteria">
-                                        <div class="criteria-item">
-                                            <div class="criteria-name">Introduction and thesis statement</div>
-                                            <div class="criteria-score">4/5</div>
-                                        </div>
-                                        <div class="criteria-item">
-                                            <div class="criteria-name">Summary and analysis of articles</div>
-                                            <div class="criteria-score">8/10</div>
-                                        </div>
-                                        <div class="criteria-item">
-                                            <div class="criteria-name">Synthesis and critical engagement</div>
-                                            <div class="criteria-score">7/10</div>
-                                        </div>
-                                        <div class="criteria-item">
-                                            <div class="criteria-name">Conclusion</div>
-                                            <div class="criteria-score">2/3</div>
-                                        </div>
-                                        <div class="criteria-item">
-                                            <div class="criteria-name">Referencing and formatting</div>
-                                            <div class="criteria-score">2/2</div>
-                                        </div>
-                                    </div>
-                                    <div class="total-score">
-                                        <div>Total Score:</div>
-                                        <div>23/30</div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                        
-                        chatContainer.appendChild(markingMessage);
-                        chatContainer.scrollTop = chatContainer.scrollHeight;
-                    }, 2000);
+                // Add user message for uploaded file
+                const userMessageContent = createMessageElement('user', 'You');
+                userMessageContent.innerHTML = `Uploaded assignment: <strong>${file.name}</strong>`;
+                
+                // Attach remove logic
+                fileItem.querySelector('.file-action[title="Remove"]').addEventListener('click', () => {
+                    fileList.innerHTML = '';
+                    currentFile = null;
+                    updateMarkButtonState();
                 });
-                
-                // Clear file input
-                this.value = '';
-                
-                // Scroll to bottom of chat
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+
+            } else {
+                currentFile = null;
+                fileList.innerHTML = '';
             }
+            // Clear file input value to allow re-uploading the same file
+            this.value = '';
+            updateMarkButtonState();
         });
+
+
+        // --- Streaming Core Logic ---
+
+        function getRubricDetails(rubricId) {
+            const rubricElement = document.getElementById(rubricId + '-content');
+            if (!rubricElement) return null;
+
+            const title = rubricElement.querySelector('h3').textContent.trim();
+            const criteriaList = rubricElement.querySelectorAll('ul li[data-criteria-name]');
+            
+            const criteria = Array.from(criteriaList).map(li => ({
+                name: li.dataset.criteriaName,
+                maxMarks: parseInt(li.dataset.maxMarks, 10),
+                description: li.textContent.trim()
+            }));
+
+            const requirements = Array.from(rubricElement.querySelectorAll('h3:nth-of-type(2) ~ ul li')).map(li => li.textContent.trim());
+
+            return { title, criteria, requirements };
+        }
+
+        async function startMarking() {
+            if (!currentFile || !selectedRubricId || isMarking) return;
+
+            isMarking = true;
+            updateMarkButtonState();
+
+            const rubricDetails = getRubricDetails(selectedRubricId);
+            const fileName = currentFile.name;
+
+            // 1. Construct the detailed prompt
+            const systemPrompt = `You are an expert academic grader. Your task is to provide constructive commentary on an assignment based on the provided rubric. Assume the file "${fileName}" has been submitted.
+            
+            ---
+            RUBRIC: ${rubricDetails.title}
+            
+            CRITERIA:
+            ${rubricDetails.criteria.map(c => `- ${c.name} (Max: ${c.maxMarks}): ${c.description}`).join('\n')}
+
+            REQUIREMENTS:
+            ${rubricDetails.requirements.map(r => `- ${r}`).join('\n')}
+            ---
+            
+            Generate a short, encouraging commentary (2-3 paragraphs max) for the student. Do not assign scores. Focus on general strengths and areas for improvement related to the rubric. Start your response with: "Assignment received. I have analyzed your submission, and here is a detailed commentary on your performance:"`;
+
+            const messages = [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: `Please mark the assignment: "${fileName}" against the rubric and requirements above. Provide commentary only.` }
+            ];
+
+            const messageContentDiv = createMessageElement('marking');
+            messageContentDiv.textContent = 'Analyzing submission...';
+            
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages })
+                });
+
+                if (!response.ok || !response.body) {
+                    let errorText = await response.text();
+                    let errorData;
+                    try { errorData = JSON.parse(errorText); } catch { errorData = { error: 'Unknown error', details: errorText }; }
+                    
+                    createMessageElement('error').textContent = `API Error (${response.status}): ${errorData.error || errorData.message || errorData.details}`;
+                    return;
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder('utf-8');
+                
+                let commentaryText = '';
+                let isFirstChunk = true;
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const lines = chunk.split('\n').filter(line => line.trim() !== '');
+
+                    for (const line of lines) {
+                        if (line.startsWith('data:')) {
+                            const data = line.substring(5).trim();
+                            if (data === '[DONE]') {
+                                // Stream finished gracefully
+                                break; 
+                            }
+                            try {
+                                const json = JSON.parse(data);
+                                const token = json.choices?.[0]?.delta?.content || '';
+                                if (token) {
+                                    commentaryText += token;
+                                    
+                                    if (isFirstChunk) {
+                                        // Clear the initial loading text with the first real token
+                                        messageContentDiv.textContent = '';
+                                        isFirstChunk = false;
+                                    }
+                                    
+                                    messageContentDiv.textContent += token;
+                                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                                }
+                            } catch (e) {
+                                console.error("Error parsing stream chunk:", e, line);
+                            }
+                        }
+                    }
+                }
+
+                // 2. Append final structured HTML score
+                const reportCardHtml = createReportCardHTML(rubricDetails);
+                messageContentDiv.innerHTML += reportCardHtml;
+
+
+            } catch (error) {
+                createMessageElement('error').textContent = `Connection Error: ${error.message}`;
+                console.error("Fetch or Stream error:", error);
+            } finally {
+                isMarking = false;
+                updateMarkButtonState();
+            }
+        }
+
+        markButton.addEventListener('click', startMarking);
+
+        // Initial setup
+        updateMarkButtonState();
+
     </script>
 </body>
 </html>
