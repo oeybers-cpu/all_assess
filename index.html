@@ -232,37 +232,6 @@
             background-color: var(--accent-light);
         }
         
-        .text-input {
-            flex: 1;
-            padding: 0.8rem 1rem;
-            border-radius: 8px;
-            background-color: var(--primary);
-            border: 1px solid var(--border);
-            color: var(--text);
-            outline: none;
-        }
-        
-        .text-input:focus {
-            border-color: var(--accent);
-        }
-        
-        .send-button {
-            padding: 0.8rem 1.5rem;
-            background-color: var(--accent);
-            border: none;
-            border-radius: 8px;
-            color: var(--text);
-            cursor: pointer;
-            transition: background-color 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        
-        .send-button:hover {
-            background-color: var(--accent-light);
-        }
-        
         .file-list {
             margin-top: 1rem;
         }
@@ -402,12 +371,6 @@
                     <span>📎</span>
                     <span>Upload Assignment</span>
                 </label>
-                
-                <input type="text" class="text-input" id="message-input" placeholder="Select assignment type to mark against...">
-                <button class="send-button" id="send-button">
-                    <span>📤</span>
-                    <span>Mark Assignment</span>
-                </button>
             </div>
         </div>
     </div>
@@ -417,17 +380,11 @@
         document.getElementById('rubric2-btn').addEventListener('click', function() {
             const content = document.getElementById('rubric2-content');
             content.classList.toggle('active');
-            
-            // Update input placeholder
-            document.getElementById('message-input').placeholder = "Mark against Assignment 2 rubric...";
         });
         
         document.getElementById('rubric3-btn').addEventListener('click', function() {
             const content = document.getElementById('rubric3-content');
             content.classList.toggle('active');
-            
-            // Update input placeholder
-            document.getElementById('message-input').placeholder = "Mark against Assignment 3 rubric...";
         });
         
         // File upload functionality
@@ -527,143 +484,6 @@
                 chatContainer.scrollTop = chatContainer.scrollHeight;
             }
         });
-        
-        // Send button functionality
-        const sendButton = document.getElementById('send-button');
-        const messageInput = document.getElementById('message-input');
-        
-        sendButton.addEventListener('click', sendMessage);
-        
-        // Allow sending with Enter key
-        messageInput.addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                sendMessage();
-            }
-        });
-        
-        function sendMessage() {
-            const message = messageInput.value.trim();
-            if (message) {
-                // Add user message
-                const userMessage = document.createElement('div');
-                userMessage.className = 'message user-message';
-                
-                userMessage.innerHTML = `
-                    <div class="message-header">
-                        <span>You</span>
-                        <span>Just Now</span>
-                    </div>
-                    <div class="message-content">
-                        ${message}
-                    </div>
-                `;
-                
-                chatContainer.appendChild(userMessage);
-                
-                // Clear input
-                messageInput.value = '';
-                
-                // Simulate AI response after a delay
-                setTimeout(() => {
-                    const markingMessage = document.createElement('div');
-                    markingMessage.className = 'message marking-message';
-                    
-                    // Response logic based on keywords
-                    let response = "";
-                    let rubricType = "";
-                    
-                    if (message.toLowerCase().includes('assignment 2') || message.toLowerCase().includes('rubric 2')) {
-                        rubricType = "Assignment 2";
-                        response = `
-                            <p>Marking against Assignment 2 rubric:</p>
-                            <div class="marking-results">
-                                <div class="marking-criteria">
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Introduction and thesis statement</div>
-                                        <div class="criteria-score">4/5</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Summary and analysis of articles</div>
-                                        <div class="criteria-score">8/10</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Synthesis and critical engagement</div>
-                                        <div class="criteria-score">7/10</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Conclusion</div>
-                                        <div class="criteria-score">2/3</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Referencing and formatting</div>
-                                        <div class="criteria-score">2/2</div>
-                                    </div>
-                                </div>
-                                <div class="total-score">
-                                    <div>Total Score:</div>
-                                    <div>23/30</div>
-                                </div>
-                            </div>
-                        `;
-                    } else if (message.toLowerCase().includes('assignment 3') || message.toLowerCase().includes('rubric 3')) {
-                        rubricType = "Assignment 3";
-                        response = `
-                            <p>Marking against Assignment 3 rubric:</p>
-                            <div class="marking-results">
-                                <div class="marking-criteria">
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Clarity and strength of argument</div>
-                                        <div class="criteria-score">6/8</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Use of evidence from required texts</div>
-                                        <div class="criteria-score">5/6</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Visual aid effectiveness</div>
-                                        <div class="criteria-score">4/5</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Counterargument acknowledgement and rebuttal</div>
-                                        <div class="criteria-score">4/5</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Team coordination and contribution</div>
-                                        <div class="criteria-score">3/4</div>
-                                    </div>
-                                    <div class="criteria-item">
-                                        <div class="criteria-name">Strong, concise conclusion</div>
-                                        <div class="criteria-score">2/2</div>
-                                    </div>
-                                </div>
-                                <div class="total-score">
-                                    <div>Total Score:</div>
-                                    <div>24/30</div>
-                                </div>
-                            </div>
-                        `;
-                    } else {
-                        response = "Please specify which assignment rubric to use for marking (Assignment 2 or Assignment 3).";
-                    }
-                    
-                    markingMessage.innerHTML = `
-                        <div class="message-header">
-                            <span>Assignment Marker</span>
-                            <span>Just Now</span>
-                        </div>
-                        <div class="message-content">
-                            ${response}
-                        </div>
-                    `;
-                    
-                    chatContainer.appendChild(markingMessage);
-                    chatContainer.scrollTop = chatContainer.scrollHeight;
-                }, 1000);
-                
-                // Scroll to bottom of chat
-                chatContainer.scrollTop = chatContainer.scrollHeight;
-            }
-        }
     </script>
 </body>
 </html>
