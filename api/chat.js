@@ -1,5 +1,5 @@
 
-```typescript
+
 // /api/chat — Vercel Edge Function
 export const config = { runtime: "edge" };
 
