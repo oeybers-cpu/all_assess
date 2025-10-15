@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ALLAssess</title>
+    <!-- PDF.js library for PDF text extraction -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <style>
         :root {
             --accent-blue: #1a237e; /* Dark blue */
@@ -137,6 +139,12 @@
         .marking-message {
             background-color: rgba(26, 35, 126, 0.08);
             border: 1px solid rgba(26, 35, 126, 0.3);
+            margin-right: auto;
+        }
+        
+        .processing-message {
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
             margin-right: auto;
         }
         
@@ -365,6 +373,9 @@
     </div>
 
     <script>
+        // Set up PDF.js worker
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+
         // --- Globals and DOM Elements ---
         const API_URL = '/api/chat'; // Your Vercel Edge Function endpoint
         const chatContainer = document.getElementById('chat-container');
@@ -377,6 +388,7 @@
         const rubricDetails = document.getElementById('rubric-details');
 
         let currentFile = null;
+        let extractedText = null;
         let selectedRubricId = null;
         let isProcessing = false;
 
@@ -475,6 +487,39 @@
             `;
         }
 
+        // --- PDF Text Extraction Function ---
+        async function extractTextFromPDF(file) {
+            return new Promise((resolve, reject) => {
+                const fileReader = new FileReader();
+                
+                fileReader.onload = async function() {
+                    try {
+                        const typedArray = new Uint8Array(this.result);
+                        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+                        let fullText = '';
+                        
+                        // Extract text from each page
+                        for (let i = 1; i <= pdf.numPages; i++) {
+                            const page = await pdf.getPage(i);
+                            const textContent = await page.getTextContent();
+                            const pageText = textContent.items.map(item => item.str).join(' ');
+                            fullText += pageText + '\n\n';
+                        }
+                        
+                        resolve(fullText);
+                    } catch (error) {
+                        reject(new Error(`Failed to extract text from PDF: ${error.message}`));
+                    }
+                };
+                
+                fileReader.onerror = function() {
+                    reject(new Error('Failed to read PDF file'));
+                };
+                
+                fileReader.readAsArrayBuffer(file);
+            });
+        }
+
         // --- Rubric & File Handling ---
 
         rubricSelect.addEventListener('change', function() {
@@ -505,7 +550,7 @@
             updateButtonStates();
         });
 
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', async function() {
             if (this.files.length > 0) {
                 fileList.innerHTML = '';
                 const file = this.files[0];
@@ -528,15 +573,45 @@
                 const userMessageContent = createMessageElement('user', 'You');
                 userMessageContent.innerHTML = `Uploaded file: <strong>${file.name}</strong>`;
                 
+                // Show processing message for PDF files
+                if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+                    const processingMessage = createMessageElement('processing');
+                    processingMessage.textContent = 'Extracting text from PDF...';
+                    
+                    try {
+                        extractedText = await extractTextFromPDF(file);
+                        processingMessage.textContent = `Successfully extracted text from PDF (${extractedText.length} characters)`;
+                        
+                        // Show a preview of the extracted text
+                        const previewMessage = createMessageElement('system');
+                        const previewText = extractedText.length > 500 
+                            ? extractedText.substring(0, 500) + '...' 
+                            : extractedText;
+                        previewMessage.innerHTML = `<strong>Extracted Text Preview:</strong><br>${previewText}`;
+                        
+                    } catch (error) {
+                        processingMessage.textContent = `Error extracting text from PDF: ${error.message}`;
+                        processingMessage.parentElement.className = 'message error-message';
+                        extractedText = null;
+                    }
+                } else {
+                    // For non-PDF files, we can't extract text in this version
+                    extractedText = null;
+                    const message = createMessageElement('system');
+                    message.textContent = 'Note: Text extraction is only available for PDF files in this version.';
+                }
+                
                 // Attach remove logic
                 fileItem.querySelector('.file-action[title="Remove"]').addEventListener('click', () => {
                     fileList.innerHTML = '';
                     currentFile = null;
+                    extractedText = null;
                     updateButtonStates();
                 });
 
             } else {
                 currentFile = null;
+                extractedText = null;
                 fileList.innerHTML = '';
             }
             // Clear file input value to allow re-uploading the same file
@@ -579,23 +654,36 @@
             const fileName = currentFile.name;
 
             // 1. Construct the detailed prompt
-            const systemPrompt = `You are an expert academic grader. Your task is to provide constructive commentary on an assignment based on the provided rubric. Assume the file "${fileName}" has been submitted.
+            let systemPrompt = `You are an expert academic grader. Your task is to provide constructive commentary on an assignment based on the provided rubric.`;
             
-            ---
-            RUBRIC: ${rubric.title}
+            // Include extracted text if available
+            if (extractedText) {
+                systemPrompt += ` The assignment text has been extracted from the PDF and is provided below.`;
+            } else {
+                systemPrompt += ` The assignment file has been uploaded but text extraction was not available.`;
+            }
             
-            CRITERIA:
-            ${rubric.criteria.map(c => `- ${c.name} (Max: ${c.maxMarks})`).join('\n')}
+            systemPrompt += `
+            
+---
+RUBRIC: ${rubric.title}
 
-            REQUIREMENTS:
-            ${rubric.requirements.map(r => `- ${r}`).join('\n')}
-            ---
-            
-            Generate a short, encouraging commentary (2-3 paragraphs max) for the student. Do not assign scores. Focus on general strengths and areas for improvement related to the rubric. Start your response with: "Assignment received. I have analyzed your submission, and here is a detailed commentary on your performance:"`;
+CRITERIA:
+${rubric.criteria.map(c => `- ${c.name} (Max: ${c.maxMarks})`).join('\n')}
+
+REQUIREMENTS:
+${rubric.requirements.map(r => `- ${r}`).join('\n')}
+---
+
+Generate a short, encouraging commentary (2-3 paragraphs max) for the student. Do not assign scores. Focus on general strengths and areas for improvement related to the rubric. Start your response with: "Assignment received. I have analyzed your submission, and here is a detailed commentary on your performance:"`;
+
+            const userMessage = extractedText 
+                ? `Please assess the assignment: "${fileName}" against the rubric and requirements above. Here is the extracted text from the assignment:\n\n${extractedText}\n\nProvide commentary only.`
+                : `Please assess the assignment: "${fileName}" against the rubric and requirements above. Provide general commentary based on the rubric since the text content is not available.`;
 
             const messages = [
                 { role: "system", content: systemPrompt },
-                { role: "user", content: `Please assess the assignment: "${fileName}" against the rubric and requirements above. Provide commentary only.` }
+                { role: "user", content: userMessage }
             ];
 
             const messageContentDiv = createMessageElement('marking');
